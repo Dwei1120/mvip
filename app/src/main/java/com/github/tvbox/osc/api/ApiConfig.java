@@ -56,10 +56,7 @@ public class ApiConfig {
     private List<String> vipParseFlags;
     private List<IJKCode> ijkCodes;
     private String spider = null;
-    //region 壁纸代码
-    private List<String> wallpaperList;
-    private int mWallpaperIndex = -1;
-    //endregion
+    public String wallpaper = "";
 
     private SourceBean emptyHome = new SourceBean();
 
@@ -70,7 +67,6 @@ public class ApiConfig {
         sourceBeanList = new LinkedHashMap<>();
         liveChannelGroupList = new ArrayList<>();
         parseBeanList = new ArrayList<>();
-        wallpaperList = new ArrayList<>();
     }
 
     public static ApiConfig get() {
@@ -237,13 +233,7 @@ public class ApiConfig {
         JsonObject infoJson = new Gson().fromJson(jsonStr, JsonObject.class);
         // spider
         spider = DefaultConfig.safeJsonString(infoJson, "spider", "");
-        //region 壁纸代码
-        wallpaperList = DefaultConfig.safeJsonStringList(infoJson, "wallpaper");
-        if (wallpaperList.size() == 0)
-            setWallpaperIndex(-1);
-        else
-            setWallpaperIndex(Hawk.get(HawkConfig.WALLPAPER_INDEX, -1));
-        //endregion
+        wallpaper = DefaultConfig.safeJsonString(infoJson, "wallpaper", "");
         // 远端站点源
         SourceBean firstSite = null;
         for (JsonElement opt : infoJson.get("sites").getAsJsonArray()) {
@@ -305,10 +295,8 @@ public class ApiConfig {
             String lives = infoJson.get("lives").getAsJsonArray().toString();
             int index = lives.indexOf("proxy://");
             if (index != -1) {
-                //int endIndex = lives.lastIndexOf("\""); // 如果Json进行了排序，这个不可靠
-                //String url = lives.substring(index, endIndex);
-                int endIndex = lives.substring(index).indexOf("\"");
-                String url = lives.substring(index, index+endIndex);
+                int endIndex = lives.lastIndexOf("\"");
+                String url = lives.substring(index, endIndex);
                 url = DefaultConfig.checkReplaceProxy(url);
 
                 //clan
@@ -488,41 +476,6 @@ public class ApiConfig {
     public SourceBean getHomeSourceBean() {
         return mHomeSource == null ? emptyHome : mHomeSource;
     }
-    //region 壁纸代码
-    public void setWallpaperIndex(int wallpaperIndex) {
-        this.mWallpaperIndex = wallpaperIndex;
-        Hawk.put(HawkConfig.WALLPAPER_INDEX, wallpaperIndex);
-    }
-
-    public List<String> getWallpaperList() {
-        return wallpaperList;
-    }
-    public int getWallpaperIndex() {
-        return mWallpaperIndex;
-    }
-    public String getShowWallpaperIndex(){
-        if (wallpaperList.size() > 0)
-            return String.format("%s/%s", mWallpaperIndex+1, wallpaperList.size());
-        else
-            return "0/0";
-    }
-    public String getWallpaperString(int wallpaperIndex){
-        String wallpaperUrl = "";
-        if (wallpaperList.size()>0){
-            wallpaperIndex = wallpaperIndex >= wallpaperList.size() ? 0 : wallpaperIndex;
-            wallpaperUrl = wallpaperList.get(wallpaperIndex);
-        }else{
-            wallpaperIndex = -1;
-            wallpaperUrl = "";
-        }
-        setWallpaperIndex(wallpaperIndex);
-        return wallpaperUrl;
-    }
-    public String getNextWallpaperString(){
-        return getWallpaperString(mWallpaperIndex + 1);
-    }
-    //endregion
-
     public List<LiveChannelGroup> getChannelGroupList() {
         return liveChannelGroupList;
     }
